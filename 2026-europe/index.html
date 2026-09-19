@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>欧洲行地图版 · 2026国庆</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const TRIP={"title":"2026国庆欧洲行","subtitle":"9/26 巴黎落地 → 10/6 维也纳起飞","persons":""};
+const LOCATIONS=[{"id":"cdg","name":"巴黎戴高乐机场 T2C","date":"09-26","time":"13:35","type":"airport","lat":49.0097,"lng":2.5479,"note":"EK073 8:20迪拜→13:35落地，行李不直挂×2段"},{"id":"par1","name":"Hotel Lumen Paris Louvre（巴黎酒店①）","date":"09-26","time":"入住","type":"hotel","lat":48.8657,"lng":2.3359,"note":"9/26–9/28 2晚，15 Rue Des Pyramides 75001；地铁Pyramides站150米"},{"id":"louvre","name":"卢浮宫","date":"09-27","time":"12:00","type":"sight","lat":48.8606,"lng":2.3376,"note":"已订✅携程，成人票×2，11:45前到场"},{"id":"ecole","name":"L'ÉCOLE珠宝课程","date":"09-27","time":"16:30–18:30","type":"course","lat":48.8715,"lng":2.343,"note":"Make Your Own Treasure Chest（9-11岁·法语授课）；16 bis Bd Montmartre 75009；提前15分钟带确认件PDF；Ginevra Tonnell [电话已隐去]"},{"id":"par2","name":"Hotel Le Cercle Tour Eiffel（巴黎酒店②）","date":"09-28","time":"入住","type":"hotel","lat":48.8578,"lng":2.2985,"note":"9/28–9/30 2晚，17 av. de la Bourdonnais 75007；Ecole Militaire站100米"},{"id":"orangerie","name":"橘园美术馆 Musée de l'Orangerie","date":"09-30","time":"14:00","type":"sight","lat":48.8638,"lng":2.3226,"note":"莫奈《睡莲》椭圆展厅+瓦尔特·纪尧姆印象派收藏；杜乐丽花园内协和广场端；建议提前网上购票免排队"},{"id":"et","name":"埃菲尔铁塔登顶","date":"09-30","time":"09:30","type":"sight","lat":48.8584,"lng":2.2945,"note":"已出票✅顶层电梯×3（成人—×2+儿童—）；不可改退；提前15-20分钟过安检；实名票带证件"},{"id":"reims","name":"Novotel Suites Reims Centre（兰斯酒店）","date":"09-30","time":"入住","type":"hotel","lat":49.255,"lng":4.0316,"note":"9/30–10/2 2晚大床套房；距兰斯站590m；9/30铁塔+退房后前往"},{"id":"zermatt","name":"Naco Aparthotel by Arca Spa（采尔马特酒店）","date":"10-02","time":"入住","type":"hotel","lat":46.0207,"lng":7.7491,"note":"10/2–10/4 2晚；近车站300m"},{"id":"viehotel","name":"EST Hotel Palais (Chotek)（维也纳酒店）","date":"10-04","time":"入住","type":"hotel","lat":48.2136,"lng":16.3554,"note":"10/4–10/6 2晚；2026新开业，评分4.8；距Schottentor地铁720m步行11分钟"},{"id":"vie","name":"维也纳机场 T1","date":"10-06","time":"11:25起飞","type":"airport","lat":48.1103,"lng":16.5697,"note":"CI064 10/6 11:25 → 10/7 05:30台北（转~5.5h）→ CI909 11:00 → 13:05香港T1"}];
+const LEGS=[{"from":"cdg","to":"par1","mode":"taxi","status":"ok","note":"机场→市区，方式待选（RER B+地铁/出租/包车）"},{"from":"par1","to":"louvre","mode":"walk","status":"ok","note":"步行约850m"},{"from":"louvre","to":"ecole","mode":"taxi","status":"ok","note":"约2.5km，课程16:30前到"},{"from":"ecole","to":"par1","mode":"taxi","status":"ok","note":"18:30下课回酒店"},{"from":"par1","to":"par2","mode":"taxi","status":"ok","note":"9/28换酒店，约3km"},{"from":"par2","to":"et","mode":"walk","status":"ok","note":"步行约12分钟"},{"from":"par2","to":"orangerie","mode":"walk","status":"ok","note":"9/28下午，约1.1km步行15分钟"},{"from":"orangerie","to":"par2","mode":"walk","status":"ok","note":"参观后返回酒店"},{"from":"et","to":"reims","mode":"train","status":"todo","note":"❗待定：巴黎→兰斯 TGV约46分钟（Gare de l'Est发车）；9/30退房后前往"},{"from":"reims","to":"zermatt","mode":"train","status":"todo","note":"❗待定（10/2）"},{"from":"zermatt","to":"vie","mode":"train","status":"todo","note":"❗待定（10/4–10/6，10/6 11:25起飞，需10/5抵达维也纳或当日早班）"}];
+const CANDIDATES=[{"group":"reims-zermatt","label":"候选A：TGV 巴黎中转","mode":"train","detail":"兰斯→巴黎Gare de l'Est(46min) → Gare de Lyon TGV Lyria→巴塞尔/Visp → 采尔马特；全程约7-8h","waypoints":[[49.255,4.0316],[48.858,2.35],[47.5596,7.5886],[46.32,7.75],[46.0207,7.7491]]},{"group":"reims-zermatt","label":"候选B：自驾 经Dijon–Lausanne","mode":"car","detail":"A5/A31经Dijon→Lausanne→Rhône河谷Sion→Visp隧道→Täsch停车+摆渡火车；全程约6.5-7.5h（约600km）","waypoints":[[49.25505,4.03166],[49.11759,4.24695],[49.00681,4.29856],[48.81093,4.28762],[48.67233,4.17023],[48.55774,4.19414],[48.41612,4.14573],[48.22944,4.17956],[48.16978,4.32507],[48.17047,4.57896],[48.03808,5.06761],[47.92279,5.21837],[47.39869,5.18255],[47.34518,5.16274],[47.32324,5.0413],[47.25589,5.22716],[47.16428,5.36802],[46.89527,5.58528],[46.84672,5.57807],[46.76607,5.95619],[46.8173,6.05765],[46.82499,6.22296],[46.77943,6.28557],[46.78636,6.37038],[46.72552,6.39809],[46.74259,6.53614],[46.71079,6.57921],[46.54015,6.56676],[46.51966,6.63225],[46.5351,6.6721],[46.42974,6.92691],[46.33445,6.93285],[46.11596,7.07486],[46.23311,7.36058],[46.31958,7.75],[46.30177,7.85936],[46.26979,7.88052],[46.02654,7.75146]]},{"group":"zermatt-vie","label":"候选A：飞机 经苏黎世ZRH","mode":"flight","detail":"采尔马特→Zürich HB(3h20m火车) → ZRH→VIE 航班约1h30m；建议10/5走，维也纳住一夜","waypoints":[[46.0207,7.7491],[47.3779,8.5403],[48.1103,16.5697]]},{"group":"zermatt-vie","label":"候选B：火车 经因斯布鲁克","mode":"train","detail":"Zürich→Innsbruck(Arlberg线,约3h40m)→Vienna Hbf(约4h)；全程约11-12h，可在Innsbruck/萨尔茨堡歇一夜拆两天","waypoints":[[46.0207,7.7491],[47.3779,8.5403],[47.2692,11.4041],[47.8105,14.4618],[48.1103,16.5697]]},{"group":"zermatt-vie","label":"候选C：自驾 经慕尼黑","mode":"car","detail":"A8经Lindau→München→A1维也纳；全程约7.5-8.5h（约720km），跨国取还车费用高","waypoints":[[46.02654,7.75146],[46.27632,7.88297],[46.37651,8.09998],[46.57644,8.38666],[46.74216,8.97916],[46.77749,9.21266],[46.83906,9.28428],[46.84735,9.50436],[46.92611,9.56223],[47.03785,9.46295],[47.0973,9.5179],[47.19183,9.48583],[47.35521,9.6047],[47.4081,9.70454],[47.50295,9.74063],[47.64054,9.74483],[47.70529,9.80134],[47.80259,9.98502],[47.84933,9.99256],[47.99569,10.14988],[48.03742,10.37572],[48.02354,10.70383],[48.0657,10.86126],[48.13674,11.57487],[48.16342,11.87138],[48.23308,11.97859],[48.26032,12.17095],[48.24634,12.41552],[48.27728,12.52798],[48.22758,12.95042],[48.25105,13.00339],[48.24969,13.20885],[48.33066,13.37063],[48.1752,13.70884],[48.17464,14.12595],[48.23649,14.35433],[48.19697,14.51854],[48.13383,14.58751],[48.11194,14.68478],[48.1456,14.8649],[48.13353,15.04779],[48.21774,15.32811],[48.16822,15.49245],[48.18533,15.79351],[48.15774,15.95799],[48.09848,15.98217],[48.05637,16.10315],[48.13234,16.33967],[48.11396,16.57241]]}];
+
+</script>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html,body { height:100%; font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif; }
+  #app { display:flex; height:100vh; }
+  /* 左侧时间轴 */
+  #timeline { width:340px; min-width:280px; overflow-y:auto; background:#fafafa;
+    border-right:1px solid #e0e0e0; padding:14px 0 40px; }
+  #timeline h1 { font-size:17px; padding:0 16px 4px; color:#1a1a1a; }
+  #timeline .sub { font-size:12px; color:#888; padding:0 16px 2px; }
+  #timeline .persons { font-size:11px; color:#aaa; padding:0 16px 12px; border-bottom:1px solid #eee; margin-bottom:8px; }
+  .day { font-size:12px; font-weight:700; color:#666; padding:10px 16px 4px; letter-spacing:.5px; }
+  .titem { padding:8px 14px 8px 16px; cursor:pointer; border-left:3px solid transparent; }
+  .titem:hover { background:#fff; }
+  .titem.active { background:#fff; border-left-color:#e11d48; }
+  .titem .name { font-size:13.5px; font-weight:600; color:#222; }
+  .titem .meta { font-size:11.5px; color:#999; margin-top:2px; }
+  .badge { display:inline-block; font-size:10px; padding:1px 6px; border-radius:8px; margin-left:6px; vertical-align:1px; }
+  .badge.hotel{background:#dbeafe;color:#1d4ed8;} .badge.sight{background:#dcfce7;color:#15803d;}
+  .badge.course{background:#fef3c7;color:#b45309;} .badge.airport{background:#f3e8ff;color:#7e22ce;}
+  .badge.pending{background:#fee2e2;color:#b91c1c;font-weight:700;}
+  .legitem { padding:6px 14px 6px 16px; font-size:12px; color:#b91c1c; cursor:pointer; border-left:3px solid transparent; }
+  .legitem:hover { background:#fff; }
+  .legitem.ok { color:#555; }
+  .candidate-list { padding:4px 16px 8px 26px; font-size:11.5px; color:#999; }
+  .candidate-list li { margin:3px 0; cursor:pointer; }
+  .candidate-list li:hover { color:#555; }
+  /* 右侧地图 */
+  #map { flex:1; }
+  .popup-title { font-weight:700; font-size:14px; margin-bottom:4px; }
+  .popup-row { font-size:12px; color:#555; line-height:1.7; }
+  .popup-order { font-size:11.5px; color:#0369a1; margin-top:4px; word-break:break-all; }
+  .popup-pending { color:#b91c1c; font-weight:600; }
+  .leaflet-control-attribution {
+    font-size:9px !important; color:#bbb !important; background:rgba(255,255,255,.55) !important;
+    max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    opacity:.55; transition:opacity .2s; padding:0 4px !important;
+  }
+  .leaflet-control-attribution:hover { opacity:1; }
+  .leaflet-control-attribution a { color:#999 !important; }
+  /* 移动端：上时间轴（可折叠）+下地图 */
+  @media (max-width: 768px) {
+    #app { flex-direction: column; }
+    #timeline { width:100%; max-width:none; max-height:40vh; border-right:none;
+      border-bottom:1px solid #e0e0e0; transition:max-height .25s ease; overflow:hidden; }
+    #timeline.collapsed { max-height:52px; }
+    #timeline:not(.collapsed) { overflow-y:auto; }
+    #timeline .sub, #timeline .persons { display:none; }
+    #timeline h1 { font-size:15px; padding:12px 16px; cursor:pointer; }
+    #timeline h1::after { content:'▾'; float:right; color:#aaa; }
+    #timeline.collapsed h1::after { content:'▸'; }
+    #tlist { padding-bottom:20px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="timeline">
+    <h1>🇪🇺 欧洲行地图版</h1>
+    <div class="sub" id="subtitle"></div>
+    <div class="persons" id="persons"></div>
+    <div id="tlist"></div>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+const byId = {}; LOCATIONS.forEach(l => byId[l.id] = l);
+const colorOf = { airport:'#7e22ce', hotel:'#1d4ed8', sight:'#15803d', course:'#b45309' };
+const modeName = { flight:'✈️', train:'🚄', car:'🚗', walk:'🚶', taxi:'🚕', bus:'🚌' };
+const pendingGroups = {}; // group key -> {fromId,toId}
+
+// ---------- 地图初始化 ----------
+const map = L.map('map', { zoomControl:true }).setView([48.6, 8.5], 6);
+// 离线兑底：z<=6 优先本地瓦片（pack_tiles.py预下载），加载失败回退Esri在线
+const localFirst = L.TileLayer.extend({
+  createTile(coords, done) {
+    const tile = document.createElement('img');
+    const z = coords.z;
+    const remote = L.TileLayer.prototype.getTileUrl.call(this, coords);
+    tile.src = (z <= 6) ? `tiles/${z}/${coords.x}_${coords.y}.png` : remote;
+    tile.onerror = () => { tile.onerror = null; tile.src = remote; };
+    L.DomEvent.on(tile, 'load', () => done(null, tile));
+    L.DomEvent.on(tile, 'error', () => done(null, tile));
+    return tile;
+  }
+});
+const baseLayers = {
+  '标准图': new localFirst('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri — Source: Esri, USGS, NOAA'
+  }),
+  '暗色图': L.layerGroup([
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom:16 }),
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom:16 })
+  ]),
+  '卫星图': new localFirst('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics'
+  })
+};
+baseLayers['标准图'].addTo(map);
+L.control.layers(baseLayers, {}, { position:'topright' }).addTo(map);
+
+// ---------- 候选路线（灰虚线，可点击） ----------
+const candLayers = {};
+CANDIDATES.forEach(c => {
+  const line = L.polyline(c.waypoints, { color:'#888', weight:2.5, dashArray:'2 7', opacity:.75 })
+    .bindPopup(`<div class="popup-title">${c.label}</div>
+      <div class="popup-row">${modeName[c.mode]||''} ${c.detail}</div>
+      <div class="popup-row" style="margin-top:4px;color:#999;">折线距离约 ${Math.round(distOf(c.waypoints))} km（近似）</div>`);
+  line.on('mouseover', e => e.target.setStyle({ color:'#555', weight:3.5, opacity:1 }));
+  line.on('mouseout',  e => e.target.setStyle({ color:'#888', weight:2.5, opacity:.75 }));
+  line.addTo(map);
+  (candLayers[c.group] = candLayers[c.group] || []).push({ line, c });
+});
+
+// ---------- 交通段 ----------
+LEGS.forEach(leg => {
+  const a = byId[leg.from], b = byId[leg.to];
+  if (!a || !b) return;
+  const pts = leg.waypoints ? leg.waypoints : [[a.lat,a.lng],[b.lat,b.lng]];
+  const style = leg.status === 'ok'
+    ? { color:'#1d4ed8', weight:3, dashArray:null, opacity:.85 }
+    : { color:'#e11d48', weight:3.5, dashArray:'8 8', opacity:.9 };
+  const line = L.polyline(pts, style).addTo(map);
+  line.bindPopup(`<div class="popup-title">${modeName[leg.mode]||''} ${a.name.split('（')[0]} → ${b.name.split('（')[0]}</div>
+    <div class="popup-row ${leg.status==='todo'?'popup-pending':''}">${leg.note}</div>
+    <div class="popup-row" style="margin-top:4px;color:#999;">直线距离约 ${haversine(a,b)} km</div>`);
+  if (leg.status === 'todo') {
+    pendingGroups[leg.from + '-' + leg.to] = { a, b, leg };
+  }
+});
+
+// ---------- 地点标记 ----------
+const markers = {};
+LOCATIONS.forEach((l, i) => {
+  const color = colorOf[l.type] || '#555';
+  const icon = L.divIcon({
+    className: 'num-pin',
+    html: `<div style="background:${color};color:#fff;width:24px;height:24px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+      border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)">${i+1}</div>`,
+    iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-12]
+  });
+  const m = L.marker([l.lat, l.lng], { icon }).addTo(map);
+  m.bindPopup(`<div class="popup-title">${i+1}. ${l.name}</div>
+    <div class="popup-row">📅 ${l.date}　🕒 ${l.time}</div>
+    ${l.note ? `<div class="popup-row">${l.note}</div>` : ''}
+    ${l.order ? `<div class="popup-order">🎫 ${l.order}</div>` : ''}`);
+  markers[l.id] = m;
+});
+
+// ---------- 左侧时间轴 ----------
+document.getElementById('subtitle').textContent = TRIP.subtitle;
+document.getElementById('persons').textContent = TRIP.persons;
+const tlist = document.getElementById('tlist');
+let lastDay = '';
+LOCATIONS.forEach((l, i) => {
+  if (l.date !== lastDay) {
+    lastDay = l.date;
+    const d = document.createElement('div');
+    d.className = 'day'; d.textContent = '— ' + l.date + ' —';
+    tlist.appendChild(d);
+  }
+  const el = document.createElement('div');
+  el.className = 'titem';
+  el.innerHTML = `<span class="name">${i+1}. ${l.name.split('（')[0]}</span>
+    <span class="badge ${l.type}">${typeName(l.type)}</span>
+    <div class="meta">${l.date} ${l.time}${l.note ? ' · ' + l.note.split('；')[0] : ''}</div>`;
+  el.onclick = () => {
+    document.querySelectorAll('.titem.active').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    map.flyTo([l.lat, l.lng], 13, { duration: .8 });
+    markers[l.id].openPopup();
+  };
+  tlist.appendChild(el);
+
+  // 该地点之后出发的待定交通段 + 候选
+  LEGS.filter(g => g.from === l.id && g.status === 'todo').forEach(leg => {
+    const li = document.createElement('div');
+    li.className = 'legitem';
+    li.textContent = `❗待定 ${modeName[leg.mode]} → ${byId[leg.to].name.split('（')[0]}`;
+    li.onclick = () => {
+      const g = candLayers[leg.from + '-' + leg.to];
+      if (g) { map.flyToBounds(g[0].line.getBounds().pad(.15)); }
+    };
+    tlist.appendChild(li);
+    const group = leg.from + '-' + leg.to;
+    if (candLayers[group]) {
+      const ul = document.createElement('ul');
+      ul.className = 'candidate-list';
+      candLayers[group].forEach(({ line, c }) => {
+        const li2 = document.createElement('li');
+        li2.textContent = c.label;
+        li2.onclick = () => { map.flyToBounds(line.getBounds().pad(.15)); line.openPopup(); };
+        ul.appendChild(li2);
+      });
+      tlist.appendChild(ul);
+    }
+  });
+});
+
+function typeName(t){ return {hotel:'住',sight:'玩',course:'课',airport:'飞'}[t] || t; }
+
+// 移动端折叠：点击标题收/展时间轴
+const tl = document.getElementById('timeline');
+tl.querySelector('h1').addEventListener('click', () => tl.classList.toggle('collapsed'));
+
+// ---------- 工具 ----------
+function haversine(a, b) {
+  const R = 6371, toR = x => x * Math.PI / 180;
+  const dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng);
+  const s = Math.sin(dLat/2)**2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(s)));
+}
+function distOf(pts) {
+  let d = 0;
+  for (let i = 1; i < pts.length; i++) {
+    d += haversine({lat:pts[i-1][0], lng:pts[i-1][1]}, {lat:pts[i][0], lng:pts[i][1]});
+  }
+  return d;
+}
+</script>
+</body>
+</html>
