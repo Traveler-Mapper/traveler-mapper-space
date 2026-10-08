@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026国庆欧洲行 · 简化路线图</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC",sans-serif}
+  #map{height:100%}
+  .hdr{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;
+    background:rgba(255,255,255,.95);border-radius:10px;padding:8px 18px;text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap}
+  .hdr b{font-size:16px}
+  .hdr span{display:block;font-size:12px;color:#666;margin-top:2px}
+  .dlabel{background:none;border:none;box-shadow:none;font-size:11px;color:#1a6fb5;
+    font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 5px #fff}
+</style>
+</head>
+<body>
+<div class="hdr"><b>2026国庆欧洲行</b><span>9/25 深圳出发 → 10/7 返回深圳 · 全程按时间顺序连线</span></div>
+<div id="map"></div>
+<script>
+const LOCATIONS=[
+ {id:"sz", name:"深圳", date:"09-25", lat:22.5431, lng:114.0579},
+ {id:"hk", name:"香港", date:"09-25/26", lat:22.3080, lng:113.9185},
+ {id:"bkk", name:"曼谷", date:"09-26", lat:13.6900, lng:100.7501},
+ {id:"dxb", name:"迪拜", date:"09-26", lat:25.2532, lng:55.3657},
+ {id:"par", name:"巴黎", date:"09-26", lat:48.8566, lng:2.3522},
+ {id:"reims", name:"兰斯", date:"09-30", lat:49.2583, lng:4.0317},
+ {id:"str", name:"斯特拉斯堡", date:"10-02", lat:48.5734, lng:7.7521},
+ {id:"basel", name:"巴塞尔", date:"10-02", lat:47.5596, lng:7.5886},
+ {id:"bern", name:"伯尔尼", date:"10-02", lat:46.9480, lng:7.4474},
+ {id:"visp", name:"威斯普 Visp", date:"10-02", lat:46.2961, lng:7.8803},
+ {id:"saasfee", name:"萨斯费 Saas-Fee", date:"10-02", lat:46.1146, lng:7.9266},
+ {id:"zrh", name:"苏黎世", date:"10-04", lat:47.3769, lng:8.5417},
+ {id:"vie", name:"维也纳", date:"10-04", lat:48.2082, lng:16.3738},
+ {id:"tpe", name:"台北", date:"10-07", lat:25.0330, lng:121.5654},
+];
+// 按地点顺序依次连线（0-1,1-2,...）
+const SEQ=[0,1,2,3,4,5,6,7,8,9,10,11,12,13];
+
+function hav(a,b){const R=6371,r=Math.PI/180;
+  const dLa=(b.lat-a.lat)*r,dLo=(b.lng-a.lng)*r;
+  const x=Math.sin(dLa/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));}
+
+const map=L.map('map');
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+  {maxZoom:18, attribution:'Tiles &copy; Esri'}).addTo(map);
+
+const pts=LOCATIONS.map(l=>[l.lat,l.lng]);
+map.fitBounds(L.latLngBounds(pts).pad(0.12));
+
+// 连线+距离标签
+for(const [i,j] of SEQ.map((v,k)=>[v,SEQ[k+1]]).slice(0,-1)){
+  const a=LOCATIONS[i],b=LOCATIONS[j];
+  L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:'#1a6fb5',weight:2.5,opacity:.8,dashArray:'6 6'}).addTo(map);
+  const d=Math.round(hav(a,b));
+  L.marker([(a.lat+b.lat)/2,(a.lng+b.lng)/2],{icon:L.divIcon({className:'dlabel',
+    html:d+' km',iconSize:[70,16],iconAnchor:[35,8]}),interactive:false}).addTo(map);
+}
+
+// 地点标记
+LOCATIONS.forEach((l,i)=>{
+  const m=L.marker([l.lat,l.lng],{icon:L.divIcon({
+    className:'', html:'<div style="width:26px;height:26px;border-radius:50%;background:#c0392b;color:#fff;'+
+    'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;'+
+    'border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)">'+(i+1)+'</div>',
+    iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
+  m.bindPopup('<b>'+(i+1)+'. '+l.name+'</b><br>日期：'+l.date);
+});
+</script>
+</body>
+</html>
