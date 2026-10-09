@@ -16,27 +16,43 @@
   .hdr span{display:block;font-size:12px;color:#666;margin-top:2px}
   .dlabel{background:none;border:none;box-shadow:none;font-size:11px;color:#1a6fb5;
     font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 5px #fff}
+  /* 顶部地点文字栏 */
+  #navbar{position:absolute;top:74px;left:50%;transform:translateX(-50%);z-index:1000;
+    background:rgba(255,255,255,.95);border-radius:10px;padding:6px 10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);max-width:94vw;overflow-x:auto;white-space:nowrap}
+  #navbar::-webkit-scrollbar{height:4px}
+  #navbar::-webkit-scrollbar-thumb{background:#ccc;border-radius:2px}
+  .nitem{display:inline-flex;align-items:center;cursor:pointer;padding:3px 8px;border-radius:6px;
+    font-size:12px;color:#333;vertical-align:middle;flex:0 0 auto}
+  .nitem:hover{background:#f0f4f8}
+  .nitem.active{background:#fdecec}
+  .nitem .no{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
+    border-radius:50%;background:#c0392b;color:#fff;font-size:10px;font-weight:700;margin-right:5px;flex:0 0 auto}
+  .nitem .nm{font-weight:600;margin-right:5px}
+  .nitem .ct{color:#888;font-size:11px;margin-right:5px}
+  .nitem .dt{color:#1a6fb5;font-size:11px}
 </style>
 </head>
 <body>
 <div class="hdr"><b>2026国庆欧洲行</b><span>9/25 深圳出发 → 10/7 返回深圳 · 全程按时间顺序连线</span></div>
+<div id="navbar"></div>
 <div id="map"></div>
 <script>
 const LOCATIONS=[
- {id:"sz", name:"深圳", date:"09-25", lat:22.5431, lng:114.0579},
- {id:"hk", name:"香港", date:"09-25/26", lat:22.3080, lng:113.9185},
- {id:"bkk", name:"曼谷", date:"09-26", lat:13.6900, lng:100.7501},
- {id:"dxb", name:"迪拜", date:"09-26", lat:25.2532, lng:55.3657},
- {id:"par", name:"巴黎", date:"09-26", lat:48.8566, lng:2.3522},
- {id:"reims", name:"兰斯", date:"09-30", lat:49.2583, lng:4.0317},
- {id:"str", name:"斯特拉斯堡", date:"10-02", lat:48.5734, lng:7.7521},
- {id:"basel", name:"巴塞尔", date:"10-02", lat:47.5596, lng:7.5886},
- {id:"bern", name:"伯尔尼", date:"10-02", lat:46.9480, lng:7.4474},
- {id:"visp", name:"威斯普 Visp", date:"10-02", lat:46.2961, lng:7.8803},
- {id:"saasfee", name:"萨斯费 Saas-Fee", date:"10-02", lat:46.1146, lng:7.9266},
- {id:"zrh", name:"苏黎世", date:"10-04", lat:47.3769, lng:8.5417},
- {id:"vie", name:"维也纳", date:"10-04", lat:48.2082, lng:16.3738},
- {id:"tpe", name:"台北", date:"10-07", lat:25.0330, lng:121.5654},
+ {id:"sz", name:"深圳", country:"中国", date:"09-25", period:"09-25", lat:22.5431, lng:114.0579},
+ {id:"hk", name:"香港", country:"中国香港", date:"09-25/26", period:"09-25→09-26", lat:22.3080, lng:113.9185},
+ {id:"bkk", name:"曼谷", country:"泰国", date:"09-26", period:"09-26 中转", lat:13.6900, lng:100.7501},
+ {id:"dxb", name:"迪拜", country:"阿联酋", date:"09-26", period:"09-26 中转", lat:25.2532, lng:55.3657},
+ {id:"par", name:"巴黎", country:"法国", date:"09-26", period:"09-26→09-30", lat:48.8566, lng:2.3522},
+ {id:"reims", name:"兰斯", country:"法国", date:"09-30", period:"09-30→10-02", lat:49.2583, lng:4.0317},
+ {id:"str", name:"斯特拉斯堡", country:"法国", date:"10-02", period:"10-02 中转", lat:48.5734, lng:7.7521},
+ {id:"basel", name:"巴塞尔", country:"瑞士", date:"10-02", period:"10-02 中转", lat:47.5596, lng:7.5886},
+ {id:"bern", name:"伯尔尼", country:"瑞士", date:"10-02", period:"10-02 途经", lat:46.9480, lng:7.4474},
+ {id:"visp", name:"威斯普 Visp", country:"瑞士", date:"10-02", period:"10-02 中转", lat:46.2961, lng:7.8803},
+ {id:"saasfee", name:"萨斯费 Saas-Fee", country:"瑞士", date:"10-02", period:"10-02→10-04", lat:46.1146, lng:7.9266},
+ {id:"zrh", name:"苏黎世", country:"瑞士", date:"10-04", period:"10-04 中转", lat:47.3769, lng:8.5417},
+ {id:"vie", name:"维也纳", country:"奥地利", date:"10-04", period:"10-04→10-06", lat:48.2082, lng:16.3738},
+ {id:"tpe", name:"台北", country:"中国台湾", date:"10-07", period:"10-07 中转", lat:25.0330, lng:121.5654},
 ];
 // 按地点顺序依次连线（0-1,1-2,...）
 const SEQ=[0,1,2,3,4,5,6,7,8,9,10,11,12,13];
@@ -63,13 +79,31 @@ for(const [i,j] of SEQ.map((v,k)=>[v,SEQ[k+1]]).slice(0,-1)){
 }
 
 // 地点标记
+const markers=[];
 LOCATIONS.forEach((l,i)=>{
   const m=L.marker([l.lat,l.lng],{icon:L.divIcon({
     className:'', html:'<div style="width:26px;height:26px;border-radius:50%;background:#c0392b;color:#fff;'+
     'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;'+
     'border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)">'+(i+1)+'</div>',
     iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
-  m.bindPopup('<b>'+(i+1)+'. '+l.name+'</b><br>日期：'+l.date);
+  m.bindPopup('<b>'+(i+1)+'. '+l.name+'</b>（'+l.country+'）<br>停留：'+l.period);
+  markers.push(m);
+});
+
+// 顶部地点文字栏（可点击定位）
+const navbar=document.getElementById('navbar');
+LOCATIONS.forEach((l,i)=>{
+  const it=document.createElement('span');
+  it.className='nitem';
+  it.innerHTML='<span class="no">'+(i+1)+'</span><span class="nm">'+l.name+
+    '</span><span class="ct">'+l.country+'</span><span class="dt">'+l.period+'</span>';
+  it.onclick=()=>{
+    document.querySelectorAll('.nitem.active').forEach(e=>e.classList.remove('active'));
+    it.classList.add('active');
+    map.flyTo([l.lat,l.lng], Math.max(map.getZoom(),8), {duration:.8});
+    markers[i].openPopup();
+  };
+  navbar.appendChild(it);
 });
 </script>
 </body>
