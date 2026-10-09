@@ -18,12 +18,13 @@
     font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 5px #fff}
   /* 顶部地点文字栏 */
   #navbar{position:absolute;top:74px;left:50%;transform:translateX(-50%);z-index:1000;
-    background:rgba(255,255,255,.95);border-radius:10px;padding:6px 10px;
-    box-shadow:0 2px 8px rgba(0,0,0,.25);max-width:94vw;overflow-x:auto;white-space:nowrap}
-  #navbar::-webkit-scrollbar{height:4px}
+    background:rgba(255,255,255,.95);border-radius:10px;padding:6px 8px;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);width:max-content;max-width:70vw;
+    display:flex;flex-direction:column;max-height:calc(4 * 29px + 12px);overflow-y:auto}
+  #navbar::-webkit-scrollbar{width:4px}
   #navbar::-webkit-scrollbar-thumb{background:#ccc;border-radius:2px}
-  .nitem{display:inline-flex;align-items:center;cursor:pointer;padding:3px 8px;border-radius:6px;
-    font-size:12px;color:#333;vertical-align:middle;flex:0 0 auto}
+  .nitem{display:flex;align-items:center;cursor:pointer;padding:4px 8px;border-radius:6px;
+    font-size:12px;color:#333;flex:0 0 auto}
   .nitem:hover{background:#f0f4f8}
   .nitem.active{background:#fdecec}
   .nitem .no{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
@@ -73,6 +74,15 @@ map.fitBounds(L.latLngBounds(pts).pad(0.12));
 for(const [i,j] of SEQ.map((v,k)=>[v,SEQ[k+1]]).slice(0,-1)){
   const a=LOCATIONS[i],b=LOCATIONS[j];
   L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:'#1a6fb5',weight:2.5,opacity:.8,dashArray:'6 6'}).addTo(map);
+  const d=Math.round(hav(a,b));
+  L.marker([(a.lat+b.lat)/2,(a.lng+b.lng)/2],{icon:L.divIcon({className:'dlabel',
+    html:d+' km',iconSize:[70,16],iconAnchor:[35,8]}),interactive:false}).addTo(map);
+}
+
+// 闭环段：台北→香港（香港→深圳已在顺序连线中）
+for(const [i,j] of [[13,1]]){
+  const a=LOCATIONS[i],b=LOCATIONS[j];
+  L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:'#c0392b',weight:2.5,opacity:.8,dashArray:'6 6'}).addTo(map);
   const d=Math.round(hav(a,b));
   L.marker([(a.lat+b.lat)/2,(a.lng+b.lng)/2],{icon:L.divIcon({className:'dlabel',
     html:d+' km',iconSize:[70,16],iconAnchor:[35,8]}),interactive:false}).addTo(map);
